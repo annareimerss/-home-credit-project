@@ -1,90 +1,127 @@
-# Home Credit Data Preparation Project
+# Home Credit Default Risk Project
 
 ## Overview
 
-This repository contains a reusable Python data preparation script for the Home Credit Default Risk dataset.
+This project builds a machine learning model to predict the probability that a loan applicant will default using the Kaggle Home Credit dataset.
 
-The script performs:
+The project includes:
+- A reusable data preparation pipeline  
+- Feature engineering across multiple relational tables  
+- A trained Gradient Boosting model  
+- A full model card documenting performance, fairness, explainability, and deployment risks  
 
-- Employment feature cleaning and anomaly handling
-- EXT_SOURCE feature cleaning and median imputation
-- Demographic and financial feature engineering
-- Aggregation of bureau, previous applications, and installment tables
-- Removal of high-missing columns
-- One-hot encoding of categorical variables
-- Alignment of training and test datasets
-- Final median imputation using training data only
+---
 
-The output is fully processed modeling-ready datasets:
+## Data Preparation
 
-- X (training features)
-- y (training target)
-- X_test (test features)
+The `data_preparation.py` script performs the following steps:
 
-## How to Use
+- Cleans employment anomalies (e.g., unrealistic employment durations)  
+- Handles missing values using median imputation  
+- Engineers demographic and financial ratio features  
+- Aggregates external tables:  
+  - Bureau data  
+  - Previous applications  
+  - Installment payments  
+- Removes high-missing columns  
+- One-hot encodes categorical variables  
+- Aligns training and test datasets  
+- Applies final imputation using training data only  
 
-1. Place the following CSV files in the same folder as `data_preparation.py`:
+### Output
 
-   - application_train.csv  
-   - application_test.csv  
-   - bureau.csv  
-   - previous_application.csv  
-   - installments_payments.csv
+- `X`: training features  
+- `y`: training target  
+- `X_test`: test features  
 
-
-3. Run the script:
-
-   python data_preparation.py
-
-The script will generate cleaned and aligned datasets ready for modeling.
-
+---
 
 ## Modeling
 
-### Overview
-
-After completing data preparation and feature engineering, multiple classification models were evaluated to predict default risk. Model performance was primarily assessed using ROC-AUC on a validation set and Kaggle public leaderboard score.
-
----
-
 ### Models Evaluated
 
-1. **Baseline Logistic Regression**
-   - Used as an initial benchmark model.
-   - Provided a reasonable baseline AUC but lacked the flexibility to capture nonlinear relationships.
+1. **Logistic Regression (Baseline)**  
+   - Established a simple linear benchmark  
 
-2. **Gradient Boosting Classifier (Untuned)**
-   - Performed significantly better than logistic regression.
-   - Cross-validated AUC ≈ 0.75.
-   - Demonstrated strong ability to model nonlinear relationships and interactions.
+2. **Gradient Boosting (Untuned)**  
+   - Strong improvement over baseline  
+   - Cross-validated AUC ≈ 0.75  
 
-3. **Gradient Boosting Classifier (Hyperparameter Tuned)**
-   - RandomizedSearchCV with 3-fold stratified cross-validation.
-   - Tuned parameters:
-     - `n_estimators`
-     - `learning_rate`
-     - `max_depth`
-     - `min_samples_split`
-     - `min_samples_leaf`
-   - Validation AUC ≈ 0.7245.
-   - Kaggle Public Score: **0.71489**
-   - Kaggle Private Score: **0.70177**
+3. **Gradient Boosting (Tuned)**  
+   - Hyperparameters tuned using RandomizedSearchCV  
+   - Validation AUC ≈ 0.7245  
+   - Kaggle Public Score: **0.71489**  
+   - Kaggle Private Score: **0.70177**  
 
-Although tuning did not significantly improve performance compared to the untuned model, Gradient Boosting consistently outperformed simpler models and was selected as the final model.
+### Final Model
+
+Gradient Boosting was selected due to:
+- Strong predictive performance  
+- Ability to capture nonlinear relationships  
+- Good generalization to unseen data  
 
 ---
 
-### Final Model Selection
+## Model Card
 
-Gradient Boosting was selected because:
+A full model card is included in:
 
-- It achieved the highest validation AUC among tested models.
-- It handled nonlinear relationships and feature interactions effectively.
-- It generalized well to the Kaggle test set.
-- It produced a competitive public leaderboard score.
+`model_card.ipynb`
+
+The model card documents:
+
+### Performance Metrics
+- ROC-AUC, precision, and recall on validation data  
+- Comparison to baseline models  
+
+### Decision Threshold Analysis
+- Selection of an optimal probability threshold based on business cost assumptions  
+- Trade-offs between false positives and false negatives  
+
+### Explainability (SHAP)
+- Feature importance using SHAP values  
+- Interpretation of how features influence predictions  
+- Translation of model outputs into human-readable explanations  
+
+### Adverse Action Mapping
+- Conversion of top predictive features into understandable denial reasons  
+- Supports regulatory requirements for explaining credit decisions  
+
+### Fairness Analysis
+- Comparison of approval rates across:  
+  - Gender (`CODE_GENDER`)  
+  - Education level (`NAME_EDUCATION_TYPE`)  
+- Identification of disparities between groups  
+
+### Limitations and Risks
+- Potential bias in training data  
+- Missing or unobserved variables (e.g., informal income, behavioral data)  
+- Model sensitivity to economic changes  
+- Risk of unfair outcomes across demographic groups  
+- Deployment risks including data drift and misuse  
 
 ---
 
-### Conclusion
+## Repository Structure
 
-The final modeling pipeline integrates engineered financial ratios, demographic features, and aggregated bureau, previous application, and installment payment features. The resulting Gradient Boosting model achieved strong predictive performance and demonstrated the value of feature engineering combined with ensemble learning methods.
+- `data_preparation.py` — data cleaning and feature engineering pipeline  
+- `model_card.ipynb` — full model documentation  
+- `Modeling.ipynb` — model development and evaluation  
+- `shap_plot.png` — example SHAP visualization  
+
+---
+
+## How to Run
+
+1. Place the required CSV files in the project directory:
+
+- application_train.csv  
+- application_test.csv  
+- bureau.csv  
+- previous_application.csv  
+- installments_payments.csv  
+
+2. Run data preparation:
+
+```bash
+python data_preparation.py
